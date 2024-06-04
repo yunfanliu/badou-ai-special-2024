@@ -1,12 +1,13 @@
 import numpy as np
 import scipy.linalg as sl
+from typing import Tuple, Optional, Dict, Any
 
-def ransac(data, model, min_samples, max_iterations, threshold, min_inliers, debug=False, return_all=False):
+def ransac(data: np.ndarray, model: Any, min_samples: int, max_iterations: int, threshold: float, min_inliers: int, debug: bool=False, return_all: bool=False) -> Tuple[np.ndarray, Optional[Dict[str, np.ndarray]]]:
     """
     Implements the RANSAC algorithm.
 
     Parameters:
-        data (numpy.ndarray): Sample points.
+        data (np.ndarray): Sample points.
         model (object): Hypothetical model to fit data.
         min_samples (int): Minimum number of samples required to fit the model.
         max_iterations (int): Maximum number of iterations.
@@ -16,8 +17,7 @@ def ransac(data, model, min_samples, max_iterations, threshold, min_inliers, deb
         return_all (bool): If True, returns all data related to the fitting process.
 
     Returns:
-        best_model (numpy.ndarray): The best fitting model parameters.
-        Optional[dict]: A dictionary containing inliers if return_all is True.
+        Tuple[np.ndarray, Optional[Dict[str, np.ndarray]]]: The best fitting model parameters and a dictionary containing inliers if return_all is True.
 
     Raises:
         ValueError: If no acceptable model is found.
@@ -25,6 +25,7 @@ def ransac(data, model, min_samples, max_iterations, threshold, min_inliers, deb
     best_model = None
     lowest_error = np.inf
     best_inliers = None
+
     for iteration in range(max_iterations):
         sample_indices, test_indices = random_partition(min_samples, data.shape[0])
         potential_inliers = data[sample_indices]
@@ -33,22 +34,20 @@ def ransac(data, model, min_samples, max_iterations, threshold, min_inliers, deb
         trial_model = model.fit(potential_inliers)
         test_errors = model.get_error(test_data, trial_model)
 
-        additional_inlier_indices = test_indices[test_errors < threshold]
-        additional_inliers = data[additional_inlier_indices]
+        additional_inliers = data[test_indices[test_errors < threshold]]
 
         if debug:
             print(f"Iteration {iteration}: Found {len(additional_inliers)} inliers.")
 
         if len(additional_inliers) > min_inliers:
-            refined_data = np.concatenate((potential_inliers, additional_inliers))
+            refined_data = np.vstack((potential_inliers, additional_inliers))
             refined_model = model.fit(refined_data)
-            refined_errors = model.get_error(refined_data, refined_model)
-            current_error = np.mean(refined_errors)
+            current_error = np.mean(model.get_error(refined_data, refined_model))
 
             if current_error < lowest_error:
                 best_model = refined_model
                 lowest_error = current_error
-                best_inliers = np.concatenate((sample_indices, additional_inlier_indices))
+                best_inliers = np.concatenate((sample_indices, test_indices[test_errors < threshold]))
 
     if best_model is None:
         raise ValueError("Did not meet fit acceptance criteria.")
@@ -58,7 +57,7 @@ def ransac(data, model, min_samples, max_iterations, threshold, min_inliers, deb
     else:
         return best_model
 
-def random_partition(min_samples, total_samples):
+def random_partition(min_samples: int, total_samples: int) -> Tuple[np.ndarray, np.ndarray]:
     """
     Randomly partition indices into two groups: one with min_samples and the other with the rest.
 
@@ -67,25 +66,24 @@ def random_partition(min_samples, total_samples):
         total_samples (int): Total number of samples.
 
     Returns:
-        tuple: Two arrays of indices, one for each group.
+        Tuple[np.ndarray, np.ndarray]: Two arrays of indices, one for each group.
     """
-    indices = np.arange(total_samples)
-    np.random.shuffle(indices)
+    indices = np.random.permutation(total_samples)
     return indices[:min_samples], indices[min_samples:]
 
 class LinearLeastSquaresModel:
-    def __init__(self, input_columns, output_columns, debug=False):
+    def __init__(self, input_columns: np.ndarray, output_columns: np.ndarray, debug: bool=False):
         self.input_columns = input_columns
         self.output_columns = output_columns
         self.debug = debug
 
-    def fit(self, data):
+    def fit(self, data: np.ndarray) -> np.ndarray:
         A = data[:, self.input_columns]
         B = data[:, self.output_columns]
         model, _, _, _ = sl.lstsq(A, B)
         return model
 
-    def get_error(self, data, model):
+    def get_error(self, data: np.ndarray, model: np.ndarray) -> np.ndarray:
         A = data[:, self.input_columns]
         B = data[:, self.output_columns]
         B_predicted = np.dot(A, model)
@@ -104,15 +102,13 @@ def test():
     B_noisy = B_exact + np.random.normal(size=B_exact.shape)
 
     n_outliers = 100
-    all_indices = np.arange(A_noisy.shape[0])
-    np.random.shuffle(all_indices)
-    outlier_indices = all_indices[:n_outliers]
+    outlier_indices = np.random.choice(np.arange(A_noisy.shape[0]), n_outliers, replace=False)
     A_noisy[outlier_indices] = 20 * np.random.random((n_outliers, n_inputs))
     B_noisy[outlier_indices] = 50 * np.random.normal(size=(n_outliers, n_outputs))
 
     all_data = np.hstack((A_noisy, B_noisy))
-    input_columns = range(n_inputs)
-    output_columns = [n_inputs + i for i in range(n_outputs)]
+    input_columns = np.arange(n_inputs)
+    output_columns = np.arange(n_inputs, n_inputs + n_outputs)
     model = LinearLeastSquaresModel(input_columns, output_columns, debug=False)
 
     linear_fit, _, _, _ = sl.lstsq(all_data[:, input_columns], all_data[:, output_columns])
@@ -121,8 +117,8 @@ def test():
 
     import matplotlib.pyplot as plt
 
-    sort_indices = np.argsort(A_exact[:, 0])
-    A_sorted = A_exact[sort_indices]
+    sorted_indices = np.argsort(A_exact[:, 0])
+    A_sorted = A_exact[sorted_indices]
 
     plt.plot(A_noisy[:, 0], B_noisy[:, 0], 'k.', label='data')
     plt.plot(A_noisy[ransac_data['inliers'], 0], B_noisy[ransac_data['inliers'], 0], 'bx', label="RANSAC data")
