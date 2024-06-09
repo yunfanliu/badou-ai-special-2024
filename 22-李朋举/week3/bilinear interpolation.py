@@ -41,7 +41,12 @@ def bilinear_interpolation(img, out_dim):
                 src_y = (dst_y + 0.5) * scale_y - 0.5
 
                 """
-                    2. 然后通过双线性插值的方法算出src相应的坐标值
+                单线性插值：
+                    已知（X0,Y0）(X1,Y1)，求（X,Y）点的rgb坐标值    
+                         x1 - X                x - x0
+                    y = -------- * f(Q11)  +  -------- * f(Q21)     
+                         x1 - x0               x1 -x0
+                2. 然后通过双线性插值的方法算出src相应的坐标值
                               y ^
                                 |
                    y2(src_y1)   -      Q12            R2                     Q22
