@@ -26,8 +26,11 @@ img = cv2.imread("D:\cv_workspace\picture\lenna.png")  # 绝对路径 opencv读�
        入参：cv2.imread(path, flags=cv2.IMREAD_COLOR)
             其中，`path` 是图像文件的路径，`flags` 是一个可选参数，用于指定图像的读取方式。常用的取值如下：
                 - `cv2.IMREAD_COLOR`：加载彩色图像（默认）
-                - `cv2.IMREAD_GRAYSCALE`：加载灰度图像
+                   1：彩色模式（Color），图像以彩色形式加载，每个像素由红、绿、蓝三个分量组成，每个分量的值在 0 到 255 之间。
+                - `cv2.IMREAD_GRAYSCALE`：加载灰度图像  
+                   0：灰度模式（Grayscale），图像以灰度形式加载，每个像素的值在 0 到 255 之间。
                 - `cv2.IMREAD_UNCHANGED`：加载原始图像，不进行任何转换
+                   -1：原始模式（Original），图像以原始格式加载，不进行任何转换。
        反参：cv2.imread 函数返回的是一个 `numpy.ndarray` 对象以多维数组的形式保存图片信息，其中包含了图像的像素数据。
             【img.shape】可以通过函数返回的`numpy.ndarray`对象的`shape`属性来获取图像的格式和大小，
                            返回的值为 `(height, width, channels)`，其中前两维表示图片的像素坐标 `height` 和 `width` 分别表示图像的高度和宽度，
