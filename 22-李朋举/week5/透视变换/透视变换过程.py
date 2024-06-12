@@ -133,18 +133,3 @@ if __name__ == '__main__':
     '''
     warpMatrix = WarpPerspectiveMatrix(src, dst)
     print(warpMatrix)
-
-
-'''
-np.zeros(shape, dtype=float, order='C')
-    shape：表示数组的形状，可以是一个整数，如 5，表示创建一个长度为 5 的一维数组；也可以是一个元组，如 (2, 3)，表示创建一个 2 行 3 列的二维数组。
-    dtype：可选参数，表示数组的数据类型，如 float、int 等，默认为 float。
-    order：可选参数，表示数组在内存中的存储顺序，'C' 表示 C 风格的存储（按行存储），'F' 表示 Fortran 风格的存储（按列存储），默认为 'C'。
-    例如，np.zeros((2, 3), dtype=int) 将创建一个 2 行 3 列的二维数组，其中所有元素的值都为 0，数据类型为整数。
-
-img.shape 是用于获取图像数组形状的属性。在使用 Python 中的图像处理库（如 OpenCV 或者 PIL）时，可以通过 img.shape 来获取图像的形状信息。
-假设 img 是一个图像数组，那么 img.shape 返回一个元组，其中包含了图像数组的形状信息。
-     如果是一个彩色图像，通常返回的是一个包含三个元素的元组，分别表示高度、宽度和通道数。如果是灰度图像，返回的是一个包含两个元素的元组，分别表示高度和宽度。
-        例如，如果要获取图像数组 img 的形状信息，可以这样做：
-        height, width, channels = img.shape  这样就可以将图像的高度、宽度和通道数分别赋值给 height、width 和 channels 这三个变量。。
-'''
