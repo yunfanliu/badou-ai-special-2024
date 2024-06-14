@@ -3,7 +3,9 @@ from numpy.linalg import lstsq
 from typing import Tuple, Optional, Dict, Any
 
 
-def ransac(data: np.ndarray, model: Any, min_samples: int, max_iterations: int, threshold: float, min_inliers: int, debug: bool = False, return_all: bool = False) -> Tuple[np.ndarray, Optional[Dict[str, np.ndarray]]]:
+def ransac(data: np.ndarray, model: Any, min_samples: int, max_iterations: int, threshold: float,
+           min_inliers: int, debug: bool = False, return_all: bool = False) -> Tuple[
+    np.ndarray, Optional[Dict[str, np.ndarray]]]:
     """
     实现RANSAC算法。
 
@@ -129,7 +131,7 @@ def test():
 
     # 使用RANSAC拟合
     model = LinearLeastSquaresModel(input_columns, output_columns, debug=False)
-    ransac_fit, ransac_data = ransac(all_data, model, 50, 1000, 7e3, 300, debug=False, return_all=True)
+    ransac_fit, ransac_data = ransac(data=all_data, model=model, min_samples=50, max_iterations=1000, threshold=7e3, min_inliers=300, debug=False, return_all=True)
 
     # 绘制结果
     import matplotlib.pyplot as plt
