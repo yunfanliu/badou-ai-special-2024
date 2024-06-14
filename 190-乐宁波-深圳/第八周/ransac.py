@@ -1,61 +1,63 @@
-import pprint
-
 import numpy as np
 from numpy.linalg import lstsq
 from typing import Tuple, Optional, Dict, Any
 
 
-def ransac(data: np.ndarray, model: Any, min_samples: int, max_iterations: int, threshold: float, min_inliers: int, debug: bool = False, return_all: bool = False) -> Tuple[
-    np.ndarray, Optional[Dict[str, np.ndarray]]]:
+def ransac(data: np.ndarray, model: Any, min_samples: int, max_iterations: int, threshold: float, min_inliers: int, debug: bool = False, return_all: bool = False) -> Tuple[np.ndarray, Optional[Dict[str, np.ndarray]]]:
     """
-    Implements the RANSAC algorithm.
+    实现RANSAC算法。
 
-    Parameters:
-        data (np.ndarray): Sample points.
-        model (object): Hypothetical model to fit data.
-        min_samples (int): Minimum number of samples required to fit the model.
-        max_iterations (int): Maximum number of iterations.
-        threshold (float): Threshold to determine if a point fits the model.
-        min_inliers (int): Minimum number of inliers required for a valid model.
-        debug (bool): If True, prints debug information.
-        return_all (bool): If True, returns all data related to the fitting process.
+    参数：
+        data (np.ndarray): 样本点。
+        model (object): 要拟合数据的假设模型。
+        min_samples (int): 拟合模型所需的最少样本数量。
+        max_iterations (int): 最大迭代次数。
+        threshold (float): 判断点是否符合模型的阈值。
+        min_inliers (int): 有效模型所需的最少内点数。
+        debug (bool): 如果为True，打印调试信息。
+        return_all (bool): 如果为True，返回所有与拟合过程相关的数据。
 
-    Returns:
-        Tuple[np.ndarray, Optional[Dict[str, np.ndarray]]]: The best fitting model parameters and a dictionary containing inliers if return_all is True.
+    返回值：
+        Tuple[np.ndarray, Optional[Dict[str, np.ndarray]]]: 最佳拟合模型参数和包含内点的字典（如果return_all为True）。
 
-    Raises:
-        ValueError: If no acceptable model is found.
+    抛出：
+        ValueError: 如果未找到可接受的模型。
     """
     best_model = None
     lowest_error = np.inf
     best_inliers = None
 
     for iteration in range(max_iterations):
+        # 随机分割样本
         sample_indices, test_indices = random_partition(min_samples, data.shape[0])
-        potential_inliers = data[sample_indices]
+        sample_data = data[sample_indices]
         test_data = data[test_indices]
 
-        trial_model = model.fit(potential_inliers)
+        # 拟合样本数据
+        trial_model = model.fit(sample_data)
         test_errors = model.get_error(test_data, trial_model)
 
+        # 选择符合阈值的内点
         inliers_mask = test_errors < threshold
-        additional_inliers = test_data[inliers_mask]
+        inliers_data = test_data[inliers_mask]
 
         if debug:
-            print(f"Iteration {iteration}: Found {len(additional_inliers)} inliers.")
+            print(f"迭代 {iteration}: 找到 {len(inliers_data)} 个内点。")
 
-        if len(additional_inliers) > min_inliers:
-            refined_data = np.vstack((potential_inliers, additional_inliers))
-            refined_model = model.fit(refined_data)
-            current_error = np.mean(model.get_error(refined_data, refined_model))
+        # 检查内点数量并计算误差
+        if len(inliers_data) > min_inliers:
+            all_inliers_data = np.vstack((sample_data, inliers_data))
+            refined_model = model.fit(all_inliers_data)
+            mean_error = np.mean(model.get_error(all_inliers_data, refined_model))
 
-            if current_error < lowest_error:
+            # 更新最佳模型
+            if mean_error < lowest_error:
                 best_model = refined_model
-                lowest_error = current_error
+                lowest_error = mean_error
                 best_inliers = np.concatenate((sample_indices, test_indices[inliers_mask]))
 
     if best_model is None:
-        raise ValueError("Did not meet fit acceptance criteria.")
+        raise ValueError("未能满足拟合接受标准。")
 
     if return_all:
         return best_model, {'inliers': best_inliers}
@@ -65,14 +67,14 @@ def ransac(data: np.ndarray, model: Any, min_samples: int, max_iterations: int, 
 
 def random_partition(min_samples: int, total_samples: int) -> Tuple[np.ndarray, np.ndarray]:
     """
-    Randomly partition indices into two groups: one with min_samples and the other with the rest.
+    随机将索引分成两组：一组有min_samples，另一组有剩余的样本。
 
-    Parameters:
-        min_samples (int): Number of samples required for the first group.
-        total_samples (int): Total number of samples.
+    参数：
+        min_samples (int): 第一组所需样本数量。
+        total_samples (int): 总样本数量。
 
-    Returns:
-        Tuple[np.ndarray, np.ndarray]: Two arrays of indices, one for each group.
+    返回值：
+        Tuple[np.ndarray, np.ndarray]: 两组索引数组。
     """
     indices = np.random.permutation(total_samples)
     return indices[:min_samples], indices[min_samples:]
@@ -97,15 +99,13 @@ class LinearLeastSquaresModel:
         return np.sum((B - B_predicted) ** 2, axis=1)
 
 
-def generate_data(n_samples, n_inputs, n_outputs):
-    pass
-
-
 def test():
     np.random.seed(42)
     n_samples = 500  # 正常样本数量
     n_inputs = 1
     n_outputs = 1
+
+    # 生成精确数据和带噪声的数据
     A_exact = 20 * np.random.random((n_samples, n_inputs))  # 精确矩阵A
     perfect_fit = 60 * np.random.normal(size=(n_inputs, n_outputs))
     B_exact = A_exact @ perfect_fit  # 点乘
@@ -113,20 +113,25 @@ def test():
     A_noisy = A_exact + np.random.normal(size=A_exact.shape)
     B_noisy = B_exact + np.random.normal(size=B_exact.shape)
 
+    # 添加异常数据
     n_outliers = 100  # 异常样本数量
     outlier_indices = np.random.choice(np.arange(A_noisy.shape[0]), n_outliers, replace=False)
     A_noisy[outlier_indices] = 20 * np.random.random((n_outliers, n_inputs))  # 均匀分布的噪声
     B_noisy[outlier_indices] = 50 * np.random.normal(size=(n_outliers, n_outputs))  # 正态分布的噪声
 
+    # 整合所有数据
     all_data = np.hstack((A_noisy, B_noisy))
     input_columns = np.arange(n_inputs)
     output_columns = np.arange(n_inputs, n_inputs + n_outputs)
 
-    linear_fit, _, _, _ = lstsq(all_data[:, input_columns], all_data[:, output_columns], rcond=None)  # 最小二乘法拟合，找到一组参数
+    # 最小二乘法拟合
+    linear_fit, _, _, _ = lstsq(all_data[:, input_columns], all_data[:, output_columns], rcond=None)
 
-    model = LinearLeastSquaresModel(input_columns, output_columns, debug=False)  # 实例化模型
-    ransac_fit, ransac_data = ransac(all_data, model, 50, 1000, 7e3, 300, debug=False, return_all=True)  # 随机采样一致性算法进行拟合
+    # 使用RANSAC拟合
+    model = LinearLeastSquaresModel(input_columns, output_columns, debug=False)
+    ransac_fit, ransac_data = ransac(all_data, model, 50, 1000, 7e3, 300, debug=False, return_all=True)
 
+    # 绘制结果
     import matplotlib.pyplot as plt
 
     sorted_indices = np.argsort(A_exact[:, 0])
