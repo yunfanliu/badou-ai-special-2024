@@ -24,17 +24,17 @@ print('test_labels', test_labels)
 '''
 把用于测试的第一张图片打印出来
 '''
-test_pic = test_images[0]
+test_pic1 = test_images[0]
 import matplotlib.pyplot as plt
 
-plt.imshow(test_pic, cmap=plt.cm.binary)
+plt.imshow(test_pic1, cmap=plt.cm.binary)
 plt.show()
 
 [3]
 '''
 使用tensorflow.Keras搭建一个有效识别图案的神经网络，
-1.models.Sequential():表示把每一个数据处理层串联起来.
-2.layers:表示神经网络中的一个数据处理层。(dense:全连接层)
+1.models.Sequential():表示把每一个数据处理层串联起来.  (串行计算模型)
+2.layers:表示神经网络中的一个数据处理层。(dense:神经元全连接)
 3.layers.Dense(…):构造一个数据处理层。
 4.input_shape(28*28,):表示当前处理层接收的数据格式必须是长和宽都是28的二维数组，后面的“,“表示数组里面的每一个元素到底包含多少个数字都没有关系.
 5.损失函数使用交叉熵categorical_crossentropy
@@ -84,6 +84,7 @@ batch_size：每次网络从输入的图片数组中随机选取128个作为一�
 epochs:每次计算的循环是五次
 '''
 network.fit(train_images, train_labels, epochs=2, batch_size=128)
+network.save('mnist_model.h5')  # 保存模型到本地
 
 [6]
 '''
@@ -93,8 +94,6 @@ network.fit(train_images, train_labels, epochs=2, batch_size=128)
 test_loss, test_acc = network.evaluate(test_images, test_labels, verbose=1)
 print('test_loss', test_loss)
 print('test_acc', test_acc)
-# network.save('mnist_model.h5')  # 保存模型到本地
-
 
 [7]
 '''
@@ -106,9 +105,8 @@ plt.imshow(test_pic, cmap=plt.cm.binary)
 plt.show()
 
 test_images = test_images.reshape((10000, 28 * 28))
-# loaded_model = models.load_model('mnist_model.h5')
-# predictions = loaded_model.predict(test_images)  # 加载本地模型， 然后做推理
-predictions = network.predict(test_images)
+predictions = models.load_model('mnist_model.h5').predict(test_images)  # 加载本地模型做推理
+# predictions = network.predict(test_images)
 print(predictions[1234])
 for i in range(10):  # 结果为10位的one hot编码，遍历结果
     if (predictions[1234][i] == 1):
