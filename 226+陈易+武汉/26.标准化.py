@@ -41,8 +41,8 @@ def z_score(x):
 def draw(x):
     count_sum = []
     for i in x:
-        count = x.count(i)
-        count_sum.append(count)
+        count = x.count(i)          # 每个元素的个数
+        count_sum.append(count)     # 记录每个元素的个数
     return count_sum
 
 if __name__ == '__main__':
@@ -56,11 +56,7 @@ if __name__ == '__main__':
     print("-1~1归一化：\n",b)
     print("零均值归一化：\n",c)
 
-    count_sum = []
-    for i in x:
-        count = x.count(i)          # 每个元素的个数
-        count_sum.append(count)     # 记录每个元素的个数
-
+    count_sum = draw(x)
     """"
     绘图 plt.plot(x, y, fmt, **kwargs)： 
     x：表示X轴上的数据点，通常是一个列表、数组或一维序列，用于指定数据点的水平位置
