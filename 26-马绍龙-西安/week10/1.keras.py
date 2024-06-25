@@ -36,7 +36,7 @@ plt.show()
 1.models.Sequential():表示把每一个数据处理层串联起来.  (串行计算模型)
 2.layers:表示神经网络中的一个数据处理层。(dense:神经元全连接)
 3.layers.Dense(…):构造一个数据处理层。
-4.input_shape(28*28,):表示当前处理层接收的数据格式必须是长和宽都是28的二维数组，后面的“,“表示数组里面的每一个元素到底包含多少个数字都没有关系.
+4.input_shape(28*28,):表示当前处理层接收的数据格式必须是长和宽都是28的二维数组，后面的“,“表示传入的shape是二维，没有的话就是1维了，不符合参数要求
 5.损失函数使用交叉熵categorical_crossentropy
 '''
 from tensorflow.keras import models
@@ -92,23 +92,22 @@ network.save('mnist_model.h5')  # 保存模型到本地
 识别效果与硬件有关（CPU/GPU）.
 '''
 test_loss, test_acc = network.evaluate(test_images, test_labels, verbose=1)
-print('test_loss', test_loss)
-print('test_acc', test_acc)
+print('test_loss==', test_loss)
+print('test_acc==', test_acc)
 
 [7]
 '''
-在测试集中选择一张手写数字到模型中，观察它的识别效果
+在测试集中选择一张手写数字到模型中，进行推理，观察识别效果
 '''
 (train_images, train_labels), (test_images, test_labels) = mnist.load_data()
 test_pic = test_images[1234]
 plt.imshow(test_pic, cmap=plt.cm.binary)
 plt.show()
 
-test_images = test_images.reshape((10000, 28 * 28))
-predictions = models.load_model('mnist_model.h5').predict(test_images)  # 加载本地模型做推理
+predictions = models.load_model('mnist_model.h5').predict(test_pic.reshape((1, 28 * 28)))  # 加载本地模型做推理
 # predictions = network.predict(test_images)
-print(predictions[1234])
+print(predictions)
 for i in range(10):  # 结果为10位的one hot编码，遍历结果
-    if (predictions[1234][i] == 1):
+    if (predictions[0][i] == 1):  # predictions是一个二维数组，当前只有一个推理结果
         print("the number for the picture is : ", i)
         break
