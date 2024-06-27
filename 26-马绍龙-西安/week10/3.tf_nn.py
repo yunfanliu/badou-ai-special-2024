@@ -3,13 +3,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # 使用numpy生成200个随机点
-x_data = np.linspace(-0.5, 0.5, 200)[:, np.newaxis]
+x_data = np.linspace(-1, 1, 50)[:, np.newaxis]
 noise = np.random.normal(0, 0.02, x_data.shape)
 y_data = np.square(x_data) + noise
 
 # 定义两个placeholder存放输入数据
-x = tf.placeholder(tf.float32, [None, 1])
-y = tf.placeholder(tf.float32, [None, 1])
+x = tf.placeholder(tf.float32)
+y = tf.placeholder(tf.float32)
 
 # 定义神经网络中间层
 Weights_L1 = tf.Variable(tf.random_normal([1, 10]))
@@ -37,7 +37,6 @@ with tf.Session() as sess:
 
     # 获得预测值
     prediction_value = sess.run(prediction, feed_dict={x: x_data})
-
 
     # 画图
     plt.figure()
