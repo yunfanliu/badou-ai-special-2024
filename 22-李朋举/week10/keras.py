@@ -112,17 +112,20 @@ Epoch 4/5
 469/469 [==============================] - 3s 6ms/step - loss: 0.0493 - accuracy: 0.9852
 Epoch 5/5
 469/469 [==============================] - 3s 7ms/step - loss: 0.0370 - accuracy: 0.9888
-313/313 [==============================] - 1s 2ms/step - loss: 0.0704 - accuracy: 0.9798
 '''
 
 # [5] 测试模型
 '''
-测试数据输入，检验网络学习后的图片识别效果.
-识别效果与硬件有关（CPU/GPU）.
+测试数据输入，检验网络学习后的图片识别效果.识别效果与硬件有关（CPU/GPU）.
+verbose = 1 是否打印
 '''
 test_loss, test_acc = network.evaluate(test_images, test_labels, verbose=1)
 print(test_loss)  # 0.07041556388139725
 print('test_acc', test_acc)  # 0.9797999858856201
+'''
+测试结果：判断业务是否能上线。 如果存在过拟合的情况，loss相对于训练较高，accuracy相对于训练较低。
+313/313 [==============================] - 1s 2ms/step - loss: 0.0704 - accuracy: 0.9798
+'''
 
 # [6] 推理
 '''
@@ -134,8 +137,12 @@ plt.imshow(digit, cmap=plt.cm.binary)
 plt.show()
 test_images = test_images.reshape((10000, 28 * 28))
 res = network.predict(test_images)
+'''
+res (10000,10)  
+[0. 0. 0. 0. 0. 0. 0. 1. 0. 0.] ,[0. 0. 1. 0. 0. 0. 0. 0. 0. 0.]...
+'''
 
 for i in range(res[1].shape[0]):
-    if (res[1][i] == 1):
+    if res[1][i] == 1:
         print("the number for the picture is : ", i)
         break
