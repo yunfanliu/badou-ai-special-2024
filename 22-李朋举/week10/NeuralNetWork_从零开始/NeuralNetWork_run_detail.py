@@ -15,10 +15,17 @@ all_values = data_list[0].split(',')
 image_array = numpy.asfarray(all_values[1:]).reshape((28, 28))
 
 # 最外层有10个输出节点
+'''
+最外层有10个输出节点
+创建一个全0数组 +0.01 最小值为0.01 , 浮点数更准确(自定义)
+      [0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01]
+'''
 onodes = 10
-targets = numpy.zeros(onodes) + 0.01  #
+targets = numpy.zeros(onodes) + 0.01
 '''
 all_values[0] 标签列,  将数字变成one-hot
+如：   all_values[0] 是标签 7 
+   =》 [0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.99, 0.01, 0.01]
 '''
 targets[int(all_values[0])] = 0.99  # all_values[0] 标签列
 print(targets)  # targets第8个元素的值是0.99，这表示图片对应的数字是7(数组是从编号0开始的).
@@ -32,9 +39,9 @@ print(targets)  # targets第8个元素的值是0.99，这表示图片对应的�
 确定中间层神经元节点数最好的办法是实验，不停的选取各种数量，看看那种数量能使得网络的表现最好。
 '''
 # 初始化网络
-input_nodes = 784
-hidden_nodes = 100
-output_nodes = 10
+input_nodes = 784   # 28*28
+hidden_nodes = 100  #
+output_nodes = 10   #
 learning_rate = 0.3
 import NeuralNetWork
 n = NeuralNetWork(input_nodes, hidden_nodes, output_nodes, learning_rate)
@@ -46,8 +53,16 @@ training_data_file.close()
 # 把数据依靠','区分，并分别读入
 for record in trainning_data_list:
     all_values = record.split(',')
+    """
+    (numpy.asfarray(all_values[1:]))  图片的像素值
+    """
     inputs = (numpy.asfarray(all_values[1:])) / 255.0 * 0.99 + 0.01
-    # 设置图片与数值的对应关系
+    # 设置图片与数值的对应关系 targets
+    '''
+    all_values[0] 标签列,  将数字变成one-hot
+    如：   all_values[0] 是标签 7 
+       =》 [0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.99, 0.01, 0.01]
+    '''
     targets = numpy.zeros(output_nodes) + 0.01
     targets[int(all_values[0])] = 0.99
     n.train(inputs, targets)
@@ -64,9 +79,10 @@ test_data_file.close()
 scores = []
 for record in test_data_list:
     all_values = record.split(',')
+    # 标签 正确答案
     correct_number = int(all_values[0])
     print("该图片对应的数字为:", correct_number)
-    # 预处理数字图片
+    # 预处理数字图片 图片的像素值
     inputs = (numpy.asfarray(all_values[1:])) / 255.0 * 0.99 + 0.01
     # 让网络判断图片对应的数字,推理
     outputs = n.query(inputs)

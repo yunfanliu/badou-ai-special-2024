@@ -3,16 +3,15 @@
 我们先给出如下代码框架：
 '''
 
-
 class NeuralNetWork:
     def __init__(self):
         # 初始化网络，设置输入层，中间层，和输出层节点数
         pass
-
+    # 训练
     def train(self):
         # 根据输入的训练数据更新节点链路权重
         pass
-
+    # 推理
     def query(self):
         # 根据输入数据计算并输出答案
         pass
@@ -85,6 +84,7 @@ def __init__(self, inputnodes, hiddennodes, outputnodes, learningrate):
 接着我们先看query函数的实现，它接收输入数据，通过神经网络的层层计算后，在输出层输出最终结果。
 输入数据要依次经过输入层，中间层，和输出层，并且在每层的节点中还得执行激活函数以便形成对下一层节点的输出信号。
 我们知道可以通过矩阵运算把这一系列复杂的运算流程给统一起来。
+hidden_inputs = numpy.dot(self.wih, inputs) , 还未经过激活函数 y=wx 
 '''
 import numpy
 
