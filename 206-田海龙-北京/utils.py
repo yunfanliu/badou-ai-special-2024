@@ -9,7 +9,7 @@ def say_hello(name):
     return res
 
 
-def cv_imread(file_path, flag=-1):
+def cv_imread(file_path, flag=cv2.IMREAD_COLOR):
     """
     读取图像，解决imread不能读取中文路径路径的问题
     :param file_path: 图像路径

@@ -17,7 +17,7 @@ img_gray = np.zeros([h, w], img.dtype)
 for i in range(h):
     for j in range(w):
         m = img[i, j]
-        img_gray[i, j] = int(m[0]*0.11 + m[1]*0.59 + m[2]*0.3)  # convert BGR to grayscale #
+        img_gray[i, j] = int(m[0]*0.11 + m[1]*0.59 + m[2]*0.3)  # convert BGR to grayscale, note that 0.11 for B
 
 # print(m)  # i，j is the position of pixel, and the three elements that m returns is the values of BRG of the pixel#
 print(img_gray.shape)

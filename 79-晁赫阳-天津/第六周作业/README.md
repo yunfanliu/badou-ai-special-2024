@@ -1,15 +1,8 @@
-This is the homework for the sixth week.
+# Week 6 Homework Programs
+This repository contains the implementation for a program as part of the sixth week's homework assignment.
 
-### Perspective Transformation and Canny Edge Detection
-This repository demonstrates how to implement perspective transformation and Canny edge detection using OpenCV.
-Perspective transformation is used to convert an image from one viewpoint to another, while Canny edge detection 
-is employed to detect edges within an image.
+Programs Included:
+## K-Means Clustering Implementation
+This program demonstrates how to perform K-Means clustering on an image using OpenCV. The K-Means algorithm is used to segment an image into different clusters based on pixel values. The program can handle both color and grayscale images, converting them into a format suitable for clustering and then applying the K-Means algorithm to generate the segmented image.
 
-## Usage
-### Perspective Transformation
-To perform perspective transformation, you need to provide the coordinates of four points in the original image, representing the four 
-corners of the region to be transformed, as well as the corresponding positions of these points in the target image. 
-Then, you can use OpenCV's `cv2.getPerspectiveTransform()` function to compute the perspective transformation matrix and apply it to the image.
-
-### Canny Edge Detection
-Canny edge detection is a popular edge detection algorithm that uses gradient magnitudes to detect edges within an image.
+## Date: 2024-05-28
