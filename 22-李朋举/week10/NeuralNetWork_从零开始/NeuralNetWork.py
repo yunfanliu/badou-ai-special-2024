@@ -50,11 +50,22 @@ class NeuralNetWork:
 
 
     """
-    训练: 根据输入的训练数据更新节点链路权重
+    每一张图片训练一次的过程
+    训练: 根据输入的训练数据更新节点链路权重 
         第一步是计算输入训练数据，给出网络的计算结果，这点跟我们前面实现的query()功能很像。"正向"
         第二步是将计算结果与正确结果相比对，获取误差，采用误差反向传播法更新网络里的每条链路权重。"反向"
     """
     def train(self, inputs_list, targets_list):
+        """
+                  inputs                hidden_outputs                final_outputs
+                  (784,1)                 (200，1)                      (10，1)
+                                          zh1/ah1                       zo1/ao1
+                            self.wih               self.who
+                           (200，784)                     (10,200)
+
+                  hidden_inputs = numpy.dot(self.wih, inputs)         (200，784)  X   (784,1)  = (200，1)
+                  final_inputs = numpy.dot(self.who, hidden_outputs)  (10, 200)  X   (200，1)  = (10，1)
+        """
         """
         第一步: 计算输入训练数据，给出网络的计算结果，这点跟我们前面实现的query()功能很像。"正向"
            把inputs_list(输入的训练数据), targets_list(训练数据对应的正确结果)转换成numpy支持的二维矩阵, T表示做矩阵的转置
@@ -98,7 +109,7 @@ class NeuralNetWork:
                                 整体损失Etotal对W5的偏导值:
                                         ∂Etotal      ∂Etotal      ∂ao1       ∂zo1
                                         -------  =  --------- * -------- * --------  =  -(t1−ao1) * [ao1∗(1−ao1)] ∗ aℎ1
-                                          ∂W5          ∂ao1       ∂zo1       ∂w5
+                                          ∂W5          ∂ao1       ∂zo1       ∂w5             
                                 更新w5的全值：
                                                         ∂Etotal
                                         w5+ = w5 − η * ----------       
@@ -124,11 +135,14 @@ class NeuralNetWork:
         hidden_errors = numpy.dot(self.who.T, output_errors * final_outputs * (1 - final_outputs))
         """
         更新权值: 根据误差计算链路权重的更新量，然后把更新加到原来链路权重上  +=, 后满结果自带了方向
+        
+                              ∂Etotal
+              w5+ = w5 − η * ----------   =  w5 -  η *  -(t1−ao1) * [ao1∗(1−ao1)] ∗ aℎ1   
+                                ∂W5                     
         """
-        self.who += self.lr * numpy.dot((output_errors * final_outputs * (1 - final_outputs)),
-                                        numpy.transpose(hidden_outputs))
-        self.wih += self.lr * numpy.dot((hidden_errors * hidden_outputs * (1 - hidden_outputs)),
-                                        numpy.transpose(inputs))
+        #              η    *           (  -(t1−ao1)   * [     ao1     *      (1−ao1)      ])*         aℎ1
+        self.who += self.lr * numpy.dot((output_errors * final_outputs * (1 - final_outputs)), numpy.transpose(hidden_outputs))
+        self.wih += self.lr * numpy.dot((hidden_errors * hidden_outputs * (1 - hidden_outputs)), numpy.transpose(inputs))
         # 训练的过程中更新了权值,这里不需要返回
         pass
 
@@ -184,8 +198,9 @@ training_data_file.close()
 epochs 的数值越大，网络被训练的就越精准，但如果超过一个阈值，网络就会引发一个过拟合的问题.
 '''
 epochs = 5
+# 每一张图片训练5次
 for e in range(epochs):
-    # 把数据依靠','区分，并分别读入
+    # 把数据依靠','区分，并分别读入 ，并分别读入 每一张图片训练一次
     for record in training_data_list:
         """
         record(str类型)  用逗号分隔  
@@ -222,6 +237,7 @@ for e in range(epochs):
         """
         targets[int(all_values[0])] = 0.99
         """
+        每一张图片训练一次
         根据上述做法，把输入图片给对应的正确数字建立联系，这种联系就可以用于输入到网络中，进行训练。
         由于一张图片总共有28*28 = 784个数值，因此我们需要让网络的输入层具备784个输入节点。
         这里需要注意的是，中间层的节点我们选择了200个神经元，这个选择是经验值。中间层的节点数没有专门的办法去规定，其数量会根据不同的问题而变化。
