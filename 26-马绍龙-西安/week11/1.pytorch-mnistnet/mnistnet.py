@@ -78,7 +78,7 @@ class Model:  # 定义模型类，用于封装网络模型、损失函数和优�
 
         print('Accuracy of the model on the test images: %d %%' % (100 * correct / total))
 
-    def query(self, pic):  # 对一张随机图片进行预测
+    def query(self, pic):  # 对单张图片进行预测
         image, label = pic
         result = self.net(image)
         predicted = torch.argmax(result, 1)
