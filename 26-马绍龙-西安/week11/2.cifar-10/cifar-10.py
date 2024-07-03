@@ -67,25 +67,24 @@ weight3 = variable_with_weight_loss(shape=[192, 10], stddev=1 / 192.0, w1=0.0)
 fc_bias3 = tf.Variable(tf.constant(0.1, shape=[10]))
 result = tf.add(tf.matmul(local4, weight3), fc_bias3)
 
-# 计算损失，包括权重参数的正则化损失和交叉熵损失
-cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=result, labels=tf.cast(y_, tf.int64))
+cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=result,
+                                                               labels=tf.cast(y_, tf.int64))  # 计算损失，包括权重参数的正则化损失和交叉熵损失
 
 weights_with_l2_loss = tf.add_n(tf.get_collection("losses"))
 loss = tf.reduce_mean(cross_entropy) + weights_with_l2_loss
 
 train_op = tf.train.AdamOptimizer(1e-3).minimize(loss)
 
-# 函数tf.nn.in_top_k()用来计算输出结果中top k的准确率，函数默认的k值是1，即top 1的准确率，也就是输出分类准确率最高时的数值
-top_k_op = tf.nn.in_top_k(result, y_, 1)
+top_k_op = tf.nn.in_top_k(result, y_, 1)  # 函数tf.nn.in_top_k()用来计算输出结果中top k的准确率，函数默认的k值是1，即top 1的准确率，也就是输出分类准确率最高时的数值
 
 init_op = tf.global_variables_initializer()
+
 with tf.Session() as sess:
     sess.run(init_op)
-    # 启动线程操作，这是因为之前数据增强的时候使用train.shuffle_batch()函数的时候通过参数num_threads()配置了16个线程用于组织batch的操作
-    tf.train.start_queue_runners()
 
-    # 每隔100step会计算并展示当前的loss、每秒钟能训练的样本数量、以及训练一个batch数据所花费的时间
-    for step in range(max_steps):
+    tf.train.start_queue_runners()  # 启动线程操作，这是因为之前数据增强的时候使用train.shuffle_batch()函数的时候通过参数num_threads()配置了16个线程用于组织batch的操作
+
+    for step in range(max_steps):  # 每隔100step会计算并展示当前的loss、每秒钟能训练的样本数量、以及训练一个batch数据所花费的时间
         start_time = time.time()
         image_batch, label_batch = sess.run([images_train, labels_train])
         _, loss_value = sess.run([train_op, loss], feed_dict={x: image_batch, y_: label_batch})
@@ -95,18 +94,15 @@ with tf.Session() as sess:
             examples_per_sec = batch_size / duration
             sec_per_batch = float(duration)
             print("step %d,loss=%.2f(%.1f examples/sec;%.3f sec/batch)" % (
-            step, loss_value, examples_per_sec, sec_per_batch))
+                step, loss_value, examples_per_sec, sec_per_batch))
 
-    # 计算最终的正确率
-    num_batch = int(math.ceil(num_examples_for_eval / batch_size))  # math.ceil()函数用于求整
+    num_batch = int(math.ceil(num_examples_for_eval / batch_size))  # 计算最终的正确率 # math.ceil()函数用于求整
     true_count = 0
     total_sample_count = num_batch * batch_size
 
-    # 在一个for循环里面统计所有预测正确的样例个数
-    for j in range(num_batch):
+    for j in range(num_batch):  # 在一个for循环里面统计所有预测正确的样例个数
         image_batch, label_batch = sess.run([images_test, labels_test])
         predictions = sess.run([top_k_op], feed_dict={x: image_batch, y_: label_batch})
         true_count += np.sum(predictions)
 
-    # 打印正确率信息
-    print("accuracy = %.3f%%" % ((true_count / total_sample_count) * 100))
+    print("accuracy = %.3f%%" % ((true_count / total_sample_count) * 100))  # 打印正确率信息
