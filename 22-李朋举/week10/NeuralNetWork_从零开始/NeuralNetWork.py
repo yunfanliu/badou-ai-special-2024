@@ -160,7 +160,6 @@ class NeuralNetWork:
                                                     ∂W1               ∂ai        ∂zi        ∂hi          ∂zhi       ∂w1   
                                                            =   [(ao1-t1)*(ao1*(1-ao1))*w5 + (ao2-t1)*(ao2*(1-ao12)*w7] * ah1*(1-ah1) * i1
                                                                --------------------------------------------------------   
-                                                           =   δh1 * i1
                                 更新w1的权值:                
                                                         ∂Etotal
                                         w1+ = w1 − η * ----------  
@@ -171,6 +170,7 @@ class NeuralNetWork:
         '''
         output_errors = targets - final_outputs
         '''
+        用δh1表示隐藏层单元h1的误差:
         hidden_errors  [(ao1-t1)*(ao1*(1-ao1))*w5 + (ao2-t1)*(ao2*(1-ao2))*w7]
                                         w5   (ao1-t1)       *       (ao1*(1-ao1))
                                      +  w7   (ao2-t1)       *       (ao2*(1-ao2)）
