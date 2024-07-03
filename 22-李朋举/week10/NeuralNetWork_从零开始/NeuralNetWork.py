@@ -105,33 +105,76 @@ class NeuralNetWork:
         """
         第二步: 计算误差(用正确结果减去网络的计算结果 targets - final_outputs), 
                是将计算结果与正确结果相比对，获取误差，采用误差反向传播法更新网络里的每条链路权重。"反向"
-                            隐藏层->输出层 的权值更新: W5-W8
+                            【 隐藏层->输出层 的权值更新: W5-W8 】
                                 整体损失Etotal对W5的偏导值:
                                         ∂Etotal      ∂Etotal      ∂ao1       ∂zo1
-                                        -------  =  --------- * -------- * --------  =  -(t1−ao1) * [ao1∗(1−ao1)] ∗ aℎ1
-                                          ∂W5          ∂ao1       ∂zo1       ∂w5             
+                                        -------  =  --------- * -------- * --------  =  -(t1−ao1) * [ao1∗(1−ao1)]  ∗  aℎ1
+                                          ∂W5          ∂ao1       ∂zo1       ∂w5        -------------------------         
+                                                                                                δo1
+                                                  用δo1表示输出层单元o1的误差：
+                                                               ∂Etotal      ∂ao1        ∂Etotal
+                                                  δo1      =  --------- * --------  =  --------   
+                                                                 ∂ao1       ∂zo1         ∂zo1   
+                                                  
+                                                  δo1      =  -(t1−ao1) * [ao1∗(1−ao1)]
+                                                  
+                                                  ∂Etotal       
+                                                  -------  =   δo1 * aℎ1
+                                                    ∂W5                                                       
                                 更新w5的全值：
                                                         ∂Etotal
                                         w5+ = w5 − η * ----------       
                                                           ∂W5 
-                            输入层->隐藏层 的权值更新: W1-W4  
+                                                          
+                                                          
+                            【 输入层->隐藏层 的权值更新: W1-W4 】  
                                 整体损失Etotal对W1的偏导值: 
                                         ∂Etotal      ∂Etotal      ∂h1        ∂h1
                                         -------  =  --------- * -------- * --------  
                                           ∂W1          ∂h1        ∂z1        ∂w1
+                                                   -------------
+                                          
                                                      ∂EO1   ∂EO2    ∂h1     ∂h1
                                                  = ( ---- + ----) * ---- * -----
                                                      ∂h1    ∂h1     ∂Z1     ∂W1
+                                                    -------------
+                                                     
                                                      ∂EO1   ∂ao1   ∂zo1     ∂EO2   ∂ao2   ∂zo2     ∂h1    ∂h1
                                                  = [(---- * ---- * ----) + (---- * ---- * ----)] * ---- * ----
                                                      ∂ao1   ∂zo1   ∂zh1     ∂ao2   ∂zo2   ∂zh2     ∂Z1    ∂w1
+                                                    --------------------------------------------
+                                                      
                                                  = [(ao1-t1)*(ao1*(1-ao1))*w5 + (ao2-t1)*(ao2*(1-ao12)*w7] * ah1*(1-ah1) * i1
+                                                   -------------------------------------------------------
+                                                                                   δh1               
+                                                  用δh1表示隐藏层单元h1的误差：
+                                                                                                      
+                                                               ∂Etotal            ∂Etotal      ∂ai       ∂zi            
+                                                  δh1     =   ----------  =  ( ∑  -------- * -------  * ------ )    
+                                                                 ∂h1                ∂ai        ∂zi       ∂h1          
+                                                  
+                                                  δh1      =  [(ao1-t1)*(ao1*(1-ao1))*w5 + (ao2-t1)*(ao2*(1-ao12)*w7]
+                                                  
+                                                  ∂Etotal           ∂Etotal      ∂ai        ∂zi          ∂ahi      ∂zhi
+                                                  -------  =   ( ∑  -------- * -------  *  ------ )  *  ------  *  ------ 
+                                                    ∂W1               ∂ai        ∂zi        ∂hi          ∂zhi       ∂w1   
+                                                           =   [(ao1-t1)*(ao1*(1-ao1))*w5 + (ao2-t1)*(ao2*(1-ao12)*w7] * ah1*(1-ah1) * i1
+                                                               --------------------------------------------------------   
+                                                           =   δh1 * i1
                                 更新w1的权值:                
                                                         ∂Etotal
                                         w1+ = w1 − η * ----------  
                                                           ∂W1      
         """
+        '''
+        targets 标签值   final_outputs 输出值
+        '''
         output_errors = targets - final_outputs
+        '''
+        hidden_errors  [(ao1-t1)*(ao1*(1-ao1))*w5 + (ao2-t1)*(ao2*(1-ao2))*w7]
+                                        w5   (ao1-t1)       *       (ao1*(1-ao1))
+                                     +  w7   (ao2-t1)       *       (ao2*(1-ao2)）
+        '''
         hidden_errors = numpy.dot(self.who.T, output_errors * final_outputs * (1 - final_outputs))
         """
         更新权值: 根据误差计算链路权重的更新量，然后把更新加到原来链路权重上  +=, 后满结果自带了方向
@@ -142,6 +185,14 @@ class NeuralNetWork:
         """
         #              η    *           (  -(t1−ao1)   * [     ao1     *      (1−ao1)      ])*         aℎ1
         self.who += self.lr * numpy.dot((output_errors * final_outputs * (1 - final_outputs)), numpy.transpose(hidden_outputs))
+        """
+        更新权值: 根据误差计算链路权重的更新量，然后把更新加到原来链路权重上  +=, 后满结果自带了方向
+        
+                              ∂Etotal
+              w1+ = w1 − η * ----------   =  w1 -  η *  [(ao1-t1)*(ao1*(1-ao1))*w5 + (ao2-t1)*(ao2*(1-ao12)*w7] * ah1*(1-ah1) * i1 
+                                ∂W1                      ------------------------------------------------------
+                                                                             hidden_errors
+        """
         self.wih += self.lr * numpy.dot((hidden_errors * hidden_outputs * (1 - hidden_outputs)), numpy.transpose(inputs))
         # 训练的过程中更新了权值,这里不需要返回
         pass
