@@ -5,11 +5,10 @@ import time
 import math
 import cifar10_data
 
-max_steps = 4000
-batch_size = 100
-num_examples_for_eval = 10000
 data_dir = "data/cifar-10-batches-bin"
-
+batch_size = 100
+max_steps = 4000
+num_examples_for_eval = 10000
 
 # 创建一个variable_with_weight_loss()函数，该函数的作用是：
 #   1.使用参数w1控制L2 loss的大小
@@ -35,11 +34,11 @@ x = tf.placeholder(tf.float32, [batch_size, 24, 24, 3])
 y_ = tf.placeholder(tf.int32, [batch_size])
 
 # 创建第一个卷积层 shape=(kh,kw,ci,co)
-kernel1 = variable_with_weight_loss(shape=[5, 5, 3, 64], stddev=5e-2, w1=0.0)
-conv1 = tf.nn.conv2d(x, kernel1, [1, 1, 1, 1], padding="SAME")
+kernel1 = variable_with_weight_loss(shape=[5, 5, 3, 64], stddev=5e-2, w1=0.0)  # 卷积核大小5*5，输入通道数3，输出通道数64
+conv1 = tf.nn.conv2d(x, kernel1, [1, 1, 1, 1], padding="SAME")  #
 bias1 = tf.Variable(tf.constant(0.0, shape=[64]))
 relu1 = tf.nn.relu(tf.nn.bias_add(conv1, bias1))
-pool1 = tf.nn.max_pool(relu1, ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="SAME")
+pool1 = tf.nn.max_pool(relu1, ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="SAME")  # 池化核大小3*3，步长为2，padding="SAME"表示在边界处进行填充
 
 # 创建第二个卷积层
 kernel2 = variable_with_weight_loss(shape=[5, 5, 64, 64], stddev=5e-2, w1=0.0)
@@ -48,9 +47,9 @@ bias2 = tf.Variable(tf.constant(0.1, shape=[64]))
 relu2 = tf.nn.relu(tf.nn.bias_add(conv2, bias2))
 pool2 = tf.nn.max_pool(relu2, ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="SAME")
 
-# 因为要进行全连接层的操作，所以这里使用tf.reshape()函数将pool2输出变成一维向量，并使用get_shape()函数获取扁平化之后的长度
+# 因为要进行全连接层的操作，所以这里使用reshape()函数将pool2输出变成一维向量，并使用get_shape()函数获取扁平化之后的长度
 reshape = tf.reshape(pool2, [batch_size, -1])  # 这里面的-1代表将pool2的三维结构拉直为一维结构
-dim = reshape.get_shape()[1].value  # get_shape()[1].value表示获取reshape之后的第二个维度的值
+dim = reshape.get_shape()[1].value  # get_shape()[1].value表示获取reshape之后的第二个维度的值，等于全连接输入的节点个数
 
 # 建立第一个全连接层
 weight1 = variable_with_weight_loss(shape=[dim, 384], stddev=0.04, w1=0.004)
@@ -75,7 +74,7 @@ loss = tf.reduce_mean(cross_entropy) + weights_with_l2_loss
 
 train_op = tf.train.AdamOptimizer(1e-3).minimize(loss)
 
-# 函数tf.nn.in_top_k()用来计算输出结果中top k的准确率，函数默认的k值是1，即top 1的准确率，也就是输出分类准确率最高时的数值
+# 函数in_top_k()用来计算输出结果中top k的准确率，函数默认的k值是1，即top 1的准确率，也就是输出分类准确率最高时的数值
 top_k_op = tf.nn.in_top_k(result, y_, 1)
 
 init_op = tf.global_variables_initializer()
