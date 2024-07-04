@@ -95,6 +95,7 @@ with tf.Session() as sess:
             sec_per_batch = float(duration)
             print("step %d,loss=%.2f(%.1f examples/sec;%.3f sec/batch)" % (
             step, loss_value, examples_per_sec, sec_per_batch))
+        # step 100,loss=1.88(662.7 examples/sec;0.151 sec/batch)
 
     # 计算最终的正确率
     num_batch = int(math.ceil(num_examples_for_eval / batch_size))  # math.ceil()函数用于求整
