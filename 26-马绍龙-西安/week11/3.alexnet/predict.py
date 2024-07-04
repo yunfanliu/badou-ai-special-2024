@@ -13,7 +13,7 @@ if __name__ == "__main__":
     img = cv2.imread("./Test.jpg")
     img_RGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     img_nor = img_RGB / 255
-    img_nor = np.expand_dims(img_nor, axis=0)  #
+    img_nor = np.expand_dims(img_nor, axis=0)  # 在第0个轴上增加一个维度，因为许多模型要求输入数据具有一个batch维度
     img_resize = utils.resize_image(img_nor, (224, 224))
 
     print("预测结果为：" + utils.print_answer(np.argmax(model.predict(img_resize))))
