@@ -1,6 +1,5 @@
 import os
 import tensorflow as tf
-import numpy as np
 
 num_classes = 10
 
@@ -53,15 +52,15 @@ def inputs(data_dir, batch_size, distorted):
         image = tf.cast(image, tf.float32)  # 将已经转换好的图片数据再次转换为float32的形式
 
         if distorted:  # 如果预处理函数中的distorted参数不为空值，就代表要进行图片增强处理
-            image = tf.image.random_crop(image, [24, 24, 3])  # 首先将预处理好的图片进行剪切
+            image = tf.image.random_crop(image, [32, 32, 3])  # 首先将预处理好的图片进行剪切
             image = tf.image.random_flip_left_right(image)  # 将剪切好的图片进行左右翻转
             image = tf.image.random_brightness(image, max_delta=0.8)  # 将左右翻转好的图片进行随机亮度调整
             image = tf.image.random_contrast(image, lower=0.2, upper=1.8)  # 将亮度调整好的图片进行随机对比度调整
         else:  # 不对图像数据进行数据增强处理
-            image = tf.image.resize_with_crop_or_pad(image, 24, 24)  # 对图片数据进行剪切
+            image = tf.image.resize_with_crop_or_pad(image, 32, 32)  # 对图片数据进行剪切
 
         image = tf.image.per_image_standardization(image)  # 进行标准化图片操作
-        image.set_shape([24, 24, 3])
+        image.set_shape([32, 32, 3])
         label.set_shape([1])
 
         return image, tf.reshape(label, [])
@@ -77,3 +76,12 @@ def inputs(data_dir, batch_size, distorted):
     return dataset
 
 
+# # 示例使用方法
+data_dir = 'cifar_data/cifar-10-batches-bin'
+batch_size = 64
+distorted = True
+
+train_dataset = inputs(data_dir, batch_size, distorted)
+print(train_dataset)
+for images, labels in train_dataset.take(1):
+    print(images.shape, labels.shape)
