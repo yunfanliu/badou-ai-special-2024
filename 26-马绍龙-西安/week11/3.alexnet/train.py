@@ -36,6 +36,8 @@ def generate_arrays_from_file(lines, batch_size):
         X_train = X_train.reshape(-1, 224, 224, 3)
         Y_train = np_utils.to_categorical(np.array(Y_train), num_classes=2)
         yield (X_train, Y_train)
+        # yield使得生成器能够在需要时产生下一个值，而不需要一次性将所有数据加载到内存中。与普通函数使用return语句不同，
+        # yield可以暂停函数的执行并保存当前状态，然后在下一次调用时从上次暂停的地方继续执行
 
 
 if __name__ == "__main__":
@@ -52,13 +54,13 @@ if __name__ == "__main__":
     np.random.shuffle(lines)
     np.random.seed(None)
 
-    # 90%用于训练，10%用于估计。
+    # 90%用于训练，10%用于评估。
     num_val = int(len(lines) * 0.1)
     num_train = len(lines) - num_val
 
     model = AlexNet()  # 建立AlexNet模型
 
-    # 保存的方式，3世代保存一次
+    # 保存的方式，3代保存一次
     checkpoint_period1 = ModelCheckpoint(
         log_dir + 'ep{epoch:03d}-loss{loss:.3f}-val_loss{val_loss:.3f}.h5',
         monitor='acc',
@@ -66,7 +68,7 @@ if __name__ == "__main__":
         save_best_only=True,
         period=3
     )
-    # 学习率下降的方式，acc三次不下降就下降学习率继续训练
+    # 学习率下降的方式，acc三次不下降就自动下降学习率继续训练
     reduce_lr = ReduceLROnPlateau(
         monitor='acc',
         factor=0.5,
@@ -93,9 +95,9 @@ if __name__ == "__main__":
 
     # 开始训练
     model.fit_generator(generate_arrays_from_file(lines[:num_train], batch_size),
-                        steps_per_epoch=max(1, num_train // batch_size),
+                        steps_per_epoch=max(1, num_train // batch_size),  # 每个epoch（训练周期）内模型遍历训练数据集的次数
                         validation_data=generate_arrays_from_file(lines[num_train:], batch_size),
-                        validation_steps=max(1, num_val // batch_size),
+                        validation_steps=max(1, num_val // batch_size),   # 地板除7 // 2 =3
                         epochs=50,
                         initial_epoch=0,
                         callbacks=[checkpoint_period1, reduce_lr])
