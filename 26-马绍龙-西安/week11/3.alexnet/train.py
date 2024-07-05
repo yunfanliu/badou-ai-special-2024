@@ -92,6 +92,7 @@ if __name__ == "__main__":
     batch_size = 128
 
     print('Train on {} samples, val on {} samples, with batch size {}.'.format(num_train, num_val, batch_size))
+    # Train on 22500 samples, val on 2500 samples, with batch size 128.
 
     # 开始训练
     model.fit_generator(generate_arrays_from_file(lines[:num_train], batch_size),
