@@ -63,7 +63,7 @@ if __name__ == "__main__":
     # 保存的方式，3代保存一次
     checkpoint_period1 = ModelCheckpoint(
         log_dir + 'ep{epoch:03d}-loss{loss:.3f}-val_loss{val_loss:.3f}.h5',
-        monitor='acc',
+        monitor='accuracy',
         save_weights_only=False,
         save_best_only=True,
         period=3
