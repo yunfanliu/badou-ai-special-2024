@@ -70,7 +70,7 @@ if __name__ == "__main__":
     )
     # 学习率下降的方式，acc三次不下降就自动下降学习率继续训练
     reduce_lr = ReduceLROnPlateau(
-        monitor='acc',
+        monitor='accuracy',
         factor=0.5,
         patience=3,
         verbose=1
