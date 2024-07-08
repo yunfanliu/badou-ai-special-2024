@@ -6,7 +6,7 @@ train_labels是用于标注图片的信息;
 test_images是用于检测系统训练效果的图片；
 test_labels是test_images图片对应的数字标签。
 '''
-from tensorflow.keras.datasets import mnist
+from keras.datasets import mnist
 (train_images, train_labels), (test_images, test_labels) = mnist.load_data()
 print('train_images.shape = ',train_images.shape)
 print('tran_labels = ', train_labels)
@@ -39,8 +39,8 @@ plt.show()
 4.input_shape(28*28,):表示当前处理层接收的数据格式必须是长和宽都是28的二维数组，
 后面的“,“表示数组里面的每一个元素到底包含多少个数字都没有关系.
 '''
-from tensorflow.keras import models
-from tensorflow.keras import layers
+from keras import models
+from keras import layers
 
 network = models.Sequential()
 network.add(layers.Dense(512, activation='relu', input_shape=(28*28,)))
@@ -75,7 +75,7 @@ test_images = test_images.astype('float32') / 255
 我们需要把数值7变成一个含有10个元素的数组，然后在第8个元素设置为1，其他元素设置为0。
 例如test_lables[0] 的值由7转变为数组[0,0,0,0,0,0,0,1,0,0] ---one hot
 '''
-from tensorflow.keras.utils import to_categorical
+from keras.utils import to_categorical
 print("before change:" ,test_labels[0])
 train_labels = to_categorical(train_labels)
 test_labels = to_categorical(test_labels)
