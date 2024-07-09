@@ -3,7 +3,7 @@
 # -------------------------------------------------------------#
 import tensorflow as tf
 
-slim = tf.contrib.slim  # 创建slim对象
+slim = tf.contrib.slim  # 创建slim对象，需要使用conda install tensorflow-estimator=1.15
 
 
 def vgg_16(inputs, num_classes=1000, is_training=True, dropout_keep_prob=0.5, spatial_squeeze=True, scope='vgg_16'):
