@@ -47,31 +47,28 @@ def conv_block(input_tensor, kernel_size, filters, stage, block, strides=(2, 2))
     conv_name_base = 'res' + str(stage) + block + '_branch'
     bn_name_base = 'bn' + str(stage) + block + '_branch'
 
-    x = Conv2D(filters1, (1, 1), strides=strides,
-               name=conv_name_base + '2a')(input_tensor)
+    x = Conv2D(filters1, (1, 1), strides=strides, name=conv_name_base + '2a')(input_tensor)
     x = BatchNormalization(name=bn_name_base + '2a')(x)
     x = Activation('relu')(x)
 
-    x = Conv2D(filters2, kernel_size, padding='same',
-               name=conv_name_base + '2b')(x)
+    x = Conv2D(filters2, kernel_size, padding='same', name=conv_name_base + '2b')(x)
     x = BatchNormalization(name=bn_name_base + '2b')(x)
     x = Activation('relu')(x)
 
     x = Conv2D(filters3, (1, 1), name=conv_name_base + '2c')(x)
     x = BatchNormalization(name=bn_name_base + '2c')(x)
 
-    shortcut = Conv2D(filters3, (1, 1), strides=strides,
-                      name=conv_name_base + '1')(input_tensor)
+    shortcut = Conv2D(filters3, (1, 1), strides=strides, name=conv_name_base + '1')(input_tensor)
     shortcut = BatchNormalization(name=bn_name_base + '1')(shortcut)
 
-    x = layers.add([x, shortcut])
+    x = layers.add([x, shortcut])  # 加法尺寸相同。 concat为级联  3*3 concat 3*3 = 3*6  concat要确保其他维度尺寸相等
     x = Activation('relu')(x)
     return x
 
 
 def ResNet50(input_shape=[224, 224, 3], classes=1000):
     img_input = Input(shape=input_shape)
-    x = ZeroPadding2D((3, 3))(img_input)
+    x = ZeroPadding2D((3, 3))(img_input)  # 单独加padding，而不是在conv2d中做
 
     x = Conv2D(64, (7, 7), strides=(2, 2), name='conv1')(x)
     x = BatchNormalization(name='bn_conv1')(x)
@@ -112,14 +109,14 @@ def ResNet50(input_shape=[224, 224, 3], classes=1000):
 
 if __name__ == '__main__':
     model = ResNet50()
-    model.summary()
+    model.summary()  # 自动打印模型结构，包括每一层的名字，参数个数、输入输出形状（relu和池化中存在不可训练参数）
     img_path = 'elephant.jpg'
     # img_path = 'bike.jpg'
     img = image.load_img(img_path, target_size=(224, 224))
     x = image.img_to_array(img)
     x = np.expand_dims(x, axis=0)
-    x = preprocess_input(x)
+    x = preprocess_input(x)  # 调用接口，做了归一化预处理
 
     print('Input image shape:', x.shape)
     preds = model.predict(x)
-    print('Predicted:', decode_predictions(preds))
+    print('Predicted:', decode_predictions(preds))  # keras自带解码，输出标签结果
