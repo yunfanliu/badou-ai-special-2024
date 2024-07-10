@@ -33,7 +33,7 @@ class Model:
         support_optim = {
             'SGD': optim.SGD(self.net.parameters(), lr=0.1, **rests),  # 随机梯度下降 精度要求不高
              # momentum解决SGD优化算法摆动幅度大的问题  RMSP进一步解决百度幅度大的问题  收敛速度快
-            'RMSP': optim.RMSprop(self.net.parameters(), lr=0.001, **rests) # 比momentum进一步解决SGD优化算法摆动幅度大的问题, 收敛速度快  √
+            'RMSP': optim.RMSprop(self.net.parameters(), lr=0.001, **rests),  # 比momentum进一步解决SGD优化算法摆动幅度大的问题, 收敛速度快  √
             'ADAM': optim.Adam(self.net.parameters(), lr=0.01, **rests),  # 先做momentum再做RMSP 收敛速度慢
         }
         return support_optim[optimist]
