@@ -79,7 +79,11 @@ train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
 test_loader = DataLoader(test_dataset, batch_size=64, shuffle=False)
 
 # 实例化模型
-model = VGG16()
+model = VGG16(num_classes=100)
+
+# 检查是否有GPU
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+model.to(device)
 
 # 定义损失函数和优化器
 criterion = nn.CrossEntropyLoss()
@@ -88,7 +92,10 @@ optimizer = torch.optim.Adam(model.parameters())
 # 训练模型
 num_epochs = 1
 for epoch in range(num_epochs):
+    model.train()  # 设置模型为训练模式
     for i, (images, labels) in enumerate(train_loader):
+        images, labels = images.to(device), labels.to(device)
+
         optimizer.zero_grad()
 
         # 前向传播
@@ -106,10 +113,12 @@ for epoch in range(num_epochs):
 torch.save(model.state_dict(), 'vgg16_cifar100.pth')
 
 # 在测试集上进行评估
+model.eval()  # 设置模型为评估模式
 with torch.no_grad():
     correct = 0
     total = 0
     for images, labels in test_loader:
+        images, labels = images.to(device), labels.to(device)
         outputs = model(images)
         _, predicted = torch.max(outputs, 1)
         total += labels.size(0)
