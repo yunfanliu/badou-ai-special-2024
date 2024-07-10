@@ -65,10 +65,10 @@ class VGG16(nn.Module):
 
 # 数据预处理
 transform = transforms.Compose([
+    transforms.Resize((32, 32)),
     transforms.RandomHorizontalFlip(),
-    transforms.RandomCrop(32, padding=4),
     transforms.ToTensor(),
-    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 ])
 
 # 加载 CIFAR100 数据集
@@ -83,18 +83,19 @@ model = VGG16()
 
 # 定义损失函数和优化器
 criterion = nn.CrossEntropyLoss()
-optimizer = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
+optimizer = torch.optim.Adam(model.parameters())
 
 # 训练模型
-num_epochs = 5
+num_epochs = 1
 for epoch in range(num_epochs):
     for i, (images, labels) in enumerate(train_loader):
+        optimizer.zero_grad()
+
         # 前向传播
         outputs = model(images)
         # 计算损失
         loss = criterion(outputs, labels)
         # 反向传播和优化
-        optimizer.zero_grad()
         loss.backward()
         optimizer.step()
 
