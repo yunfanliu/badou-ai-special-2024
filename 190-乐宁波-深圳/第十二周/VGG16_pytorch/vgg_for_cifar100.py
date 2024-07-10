@@ -68,7 +68,7 @@ transform = transforms.Compose([
     transforms.Resize((32, 32)),
     transforms.RandomHorizontalFlip(),
     transforms.ToTensor(),
-    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    transforms.Normalize(mean=[0.5071, 0.4867, 0.4408], std=[0.2675, 0.2565, 0.2761])
 ])
 
 # 加载 CIFAR100 数据集
@@ -87,10 +87,10 @@ model.to(device)
 
 # 定义损失函数和优化器
 criterion = nn.CrossEntropyLoss()
-optimizer = torch.optim.Adam(model.parameters())
+optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
 # 训练模型
-num_epochs = 1
+num_epochs = 10  # 增加训练周期
 for epoch in range(num_epochs):
     model.train()  # 设置模型为训练模式
     for i, (images, labels) in enumerate(train_loader):
