@@ -159,12 +159,12 @@ if __name__ == '__main__':
 
     # 调用训练和测试函数
     print("Starting training...")
-    train_model(model, train_loader, test_loader, criterion, optimizer, scaler, num_epochs=50, eval_subset_ratio=0.05)
+    train_model(model, train_loader, test_loader, criterion, optimizer, scaler, num_epochs=25, eval_subset_ratio=0.05)
     print("Training finished. Starting evaluation...")
     evaluate_model(model, test_loader)
 
     # 保存模型
-    torch.save(model.state_dict(), 'vgg16.pth')
+    torch.save(model.state_dict(), 'vgg13.pth')
     # torch.save(model.state_dict(), 'cnn.pth')
     print("Model saved.")
 
