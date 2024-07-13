@@ -27,13 +27,14 @@ def variable_with_weight_loss(shape, stddev, w1):
 
 # 使用上一个文件里面已经定义好的文件序列读取函数读取训练数据文件和测试数据从文件.
 # 其中训练数据文件进行数据增强处理，测试数据文件不进行数据增强处理
+# images_train  <tf.Tensor 'shuffle_batch:0' shape=(100, 24, 24, 3) dtype=float32>    labels_train <tf.Tensor 'Reshape_1:0' shape=(100,) dtype=int32>
 images_train, labels_train = Cifar10_data.inputs(data_dir=data_dir, batch_size=batch_size, distorted=True)
 images_test, labels_test = Cifar10_data.inputs(data_dir=data_dir, batch_size=batch_size, distorted=None)
 
 # 创建x和y_两个placeholder，用于在训练或评估时提供输入的数据和对应的标签值。
 # 要注意的是，由于以后定义全连接网络的时候用到了batch_size，所以x中，第一个参数不应该是None，而应该是batch_size
-x = tf.placeholder(tf.float32, [batch_size, 24, 24, 3])
-y_ = tf.placeholder(tf.int32, [batch_size])
+x = tf.placeholder(tf.float32, [batch_size, 24, 24, 3])  # <tf.Tensor 'Placeholder:0' shape=(100, 24, 24, 3) dtype=float32>
+y_ = tf.placeholder(tf.int32, [batch_size])  # <tf.Tensor 'Placeholder_1:0' shape=(100,) dtype=int32>
 
 # 创建第一个卷积层 shape=(kh,kw,ci,co)
 '''
@@ -42,7 +43,10 @@ y_ = tf.placeholder(tf.int32, [batch_size])
                 创建了一个卷积核 `kernel1`，它的形状为 `[5, 5, 3, 64]`。其中，`5` 和 `5` 分别表示卷积核的高度和宽度，`3` 表示输入图像的通道数，`64` 表示卷积核的数量。
                 `stddev=5e-2` 表示卷积核的标准差，`w1=0.0` 是一个可选的权重衰减参数。
     2. `conv1 = tf.nn.conv2d(x, kernel1, [1, 1, 1, 1], padding="SAME")`：
-                执行卷积操作: `x` 是输入图像，`kernel1` 是卷积核，`[1, 1, 1, 1]` 表示卷积核的移动步长，`padding="SAME"` 表示使用相同的填充方式。卷积操作将输入图像与卷积核进行卷积，得到卷积后的特征图 `conv1`。
+                执行卷积操作: `x` 是输入图像，`kernel1` 是卷积核，`[1, 1, 1, 1]` 表示卷积核的移动步长，
+                `padding="SAME"` 表示使用相同的填充方式。卷积操作将输入图像与卷积核进行卷积，得到卷积后的特征图 `conv1`。
+                                 卷积之后输出的feature map尺寸保持不变(相对于输入图片)。当然，same模式不代表完全输入输出尺寸一样，也跟卷积核的步长有关系。
+                                 same模式也是最常见的模式，因为这种模式可以在卷积过程中让图的大小保持不变。
     3. `bias1 = tf.Variable(tf.constant(0.0, shape=[64]))`：
                 创建了一个偏置项 `bias1`，它的形状为 `[64]`，与卷积核的数量相同。
     4. `relu1 = tf.nn.relu(tf.nn.bias_add(conv1, bias1))`：
@@ -50,31 +54,37 @@ y_ = tf.placeholder(tf.int32, [batch_size])
     5. `pool1 = tf.nn.max_pool(relu1, ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="SAME")`：
                 执行池化操作:`relu1` 是激活后的特征图，`ksize=[1, 3, 3, 1]` 表示池化窗口的大小，`strides=[1, 2, 2, 1]` 表示池化窗口的移动步长，`padding="SAME"` 表示使用相同的填充方式。
                           池化操作将特征图划分为不同的区域，然后在每个区域内取最大值，得到池化后的特征图 `pool1`。
+                - `relu1`：这是输入的张量，通常是经过 ReLU 激活函数处理后的结果。
+                - `ksize`：这是一个列表，指定了池化窗口的大小。在这个例子中，`ksize=[1, 3, 3, 1]` 表示池化窗口的高度为 1，宽度为 3，深度为 3。
+                - `strides`：这也是一个列表，指定了池化操作的步长。在这个例子中，`strides=[1, 2, 2, 1]` 表示在高度和深度方向上的步长为 1，在宽度方向上的步长为 2。
+                - `padding`：这是一个字符串，指定了池化操作的填充方式。在这个例子中，`padding="SAME"` 表示使用相同的填充方式，即在输入张量的边缘添加零，以确保输出张量的大小与输入张量相同。
+                最大池化操作的作用是对输入张量进行下采样，减少张量的维度，同时保留输入张量中的重要特征。通过设置池化窗口的大小和步长，可以控制下采样的程度。
+                在这个例子中，宽度方向上的步长为 2，意味着输出张量的宽度是输入张量的一半。
 '''
-kernel1 = variable_with_weight_loss(shape=[5, 5, 3, 64], stddev=5e-2, w1=0.0)
-conv1 = tf.nn.conv2d(x, kernel1, [1, 1, 1, 1], padding="SAME")  # 四个方向 1111
-bias1 = tf.Variable(tf.constant(0.0, shape=[64]))
-relu1 = tf.nn.relu(tf.nn.bias_add(conv1, bias1))
-pool1 = tf.nn.max_pool(relu1, ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="SAME")  # kernal 3,3  1,1数据格式要求没有意义  strides 2，2 步长
+kernel1 = variable_with_weight_loss(shape=[5, 5, 3, 64], stddev=5e-2, w1=0.0)  # <tf.Variable 'Variable:0' shape=(5, 5, 3, 64) dtype=float32_ref>
+conv1 = tf.nn.conv2d(x, kernel1, [1, 1, 1, 1], padding="SAME")  # 四个方向 1111  <tf.Tensor 'Conv2D:0' shape=(100, 24, 24, 64) dtype=float32>
+bias1 = tf.Variable(tf.constant(0.0, shape=[64]))  # <tf.Variable 'Variable_1:0' shape=(64,) dtype=float32_ref>
+relu1 = tf.nn.relu(tf.nn.bias_add(conv1, bias1))  # <tf.Tensor 'Relu:0' shape=(100, 24, 24, 64) dtype=float32>
+pool1 = tf.nn.max_pool(relu1, ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="SAME")  # <tf.Tensor 'MaxPool:0' shape=(100, 12, 12, 64) dtype=float32>
 
 # 创建第二个卷积层
-kernel2 = variable_with_weight_loss(shape=[5, 5, 64, 64], stddev=5e-2, w1=0.0)
-conv2 = tf.nn.conv2d(pool1, kernel2, [1, 1, 1, 1], padding="SAME")
-bias2 = tf.Variable(tf.constant(0.1, shape=[64]))
-relu2 = tf.nn.relu(tf.nn.bias_add(conv2, bias2))
-pool2 = tf.nn.max_pool(relu2, ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="SAME")
+kernel2 = variable_with_weight_loss(shape=[5, 5, 64, 64], stddev=5e-2, w1=0.0)  # <tf.Variable 'Variable_2:0' shape=(5, 5, 64, 64) dtype=float32_ref>
+conv2 = tf.nn.conv2d(pool1, kernel2, [1, 1, 1, 1], padding="SAME")  # <tf.Tensor 'Conv2D_1:0' shape=(100, 12, 12, 64) dtype=float32>
+bias2 = tf.Variable(tf.constant(0.1, shape=[64]))  # <tf.Variable 'Variable_3:0' shape=(64,) dtype=float32_ref>
+relu2 = tf.nn.relu(tf.nn.bias_add(conv2, bias2))  # <tf.Tensor 'Relu_1:0' shape=(100, 12, 12, 64) dtype=float32>
+pool2 = tf.nn.max_pool(relu2, ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="SAME")  # <tf.Tensor 'MaxPool_1:0' shape=(100, 6, 6, 64) dtype=float32>
 
 '''
 使用 TensorFlow 库进行张量的形状重塑和维度获取:
     1. `reshape = tf.reshape(pool2, [batch_size, -1])`：
-                将张量 `pool2` 重塑为形状为 `[batch_size, -1]` 的张量。 其中，`batch_size` 是已知的批量大小，`-1` 表示自动计算该维度的大小，以使重塑后的张量元素数量与原始张量相同。
+                将张量 `pool2` 重塑为形状为 `[batch_size, -1]` 的张量。 其中，`batch_size` 是已知的批量大小，`-1` 表示自动计算该维度的大小，以使重塑后的张量 元素数量 与原始张量相同。
     2. `dim = reshape.get_shape()[1].value`：
                 获取重塑后的张量 `reshape` 的形状信息，并从中获取第二个维度的值。`get_shape()[1].value` 表示获取形状信息中第二个维度的值，并将其存储在变量 `dim` 中。
     通过 `dim` 获取重塑后的张量的第二个维度的大小，以便在后续的计算中使用。
 '''
 # 因为要进行全连接层的操作，所以这里使用tf.reshape()函数将pool2输出变成一维向量，并使用get_shape()函数获取扁平化之后的长度
-reshape = tf.reshape(pool2, [batch_size, -1])  # 这里面的-1代表将pool2的三维结构拉直为一维结构
-dim = reshape.get_shape()[1].value  # get_shape()[1].value表示获取reshape之后的第二个维度的值
+reshape = tf.reshape(pool2, [batch_size, -1])  # 这里面的-1代表将pool2的三维结构拉直为一维结构  <tf.Tensor 'Reshape_4:0' shape=(100, 2304) dtype=float32>
+dim = reshape.get_shape()[1].value  # get_shape()[1].value表示获取reshape之后的第二个维度的值  dim 2304
 
 '''
 神经网络中添加一个全连接层： 将输入的维度 `dim` 映射到输出的维度 `384`。
@@ -86,9 +96,9 @@ dim = reshape.get_shape()[1].value  # get_shape()[1].value表示获取reshape之
                执行了一个全连接层的计算。首先，通过矩阵乘法将输入 `reshape` 和权重 `weight1` 相乘，然后将结果与偏置 `fc_bias1` 相加。最后，使用 ReLU 激活函数对结果进行非线性变换。    
 '''
 # 建立第一个全连接层
-weight1 = variable_with_weight_loss(shape=[dim, 384], stddev=0.04, w1=0.004)
-fc_bias1 = tf.Variable(tf.constant(0.1, shape=[384]))
-fc_1 = tf.nn.relu(tf.matmul(reshape, weight1) + fc_bias1)
+weight1 = variable_with_weight_loss(shape=[dim, 384], stddev=0.04, w1=0.004)  # <tf.Variable 'Variable_4:0' shape=(2304, 384) dtype=float32_ref>
+fc_bias1 = tf.Variable(tf.constant(0.1, shape=[384]))  # <tf.Variable 'Variable_5:0' shape=(384,) dtype=float32_ref>
+fc_1 = tf.nn.relu(tf.matmul(reshape, weight1) + fc_bias1)  # <tf.Tensor 'Relu_2:0' shape=(100, 384) dtype=float32>
 
 # 建立第二个全连接层
 weight2 = variable_with_weight_loss(shape=[384, 192], stddev=0.04, w1=0.004)
@@ -96,9 +106,9 @@ fc_bias2 = tf.Variable(tf.constant(0.1, shape=[192]))
 local4 = tf.nn.relu(tf.matmul(fc_1, weight2) + fc_bias2)
 
 # 建立第三个全连接层
-weight3 = variable_with_weight_loss(shape=[192, 10], stddev=1 / 192.0, w1=0.0)
-fc_bias3 = tf.Variable(tf.constant(0.1, shape=[10]))
-result = tf.add(tf.matmul(local4, weight3), fc_bias3)
+weight3 = variable_with_weight_loss(shape=[192, 10], stddev=1 / 192.0, w1=0.0)  # <tf.Variable 'Variable_8:0' shape=(192, 10) dtype=float32_ref>
+fc_bias3 = tf.Variable(tf.constant(0.1, shape=[10]))  # <tf.Variable 'Variable_9:0' shape=(10,) dtype=float32_ref>
+result = tf.add(tf.matmul(local4, weight3), fc_bias3)  # <tf.Tensor 'Add_2:0' shape=(100, 10) dtype=float32>
 
 '''
 计算交叉熵损失： 计算模型的预测结果与真实标签之间的交叉熵损失，并将结果存储在变量 `cross_entropy` 中。这个损失值将在后续的训练过程中用于优化模型的参数。
@@ -109,7 +119,7 @@ result = tf.add(tf.matmul(local4, weight3), fc_bias3)
     交叉熵损失用于衡量模型的预测结果与真实标签之间的差异。它在深度学习中常用于分类问题，通过最小化交叉熵损失来优化模型的参数，以使模型能够更准确地预测类别。
     
 '''
-# 计算损失，包括权重参数的正则化损失和交叉熵损失
+# 计算损失，包括权重参数的正则化损失和交叉熵损失  <tf.Tensor 'SparseSoftmaxCrossEntropyWithLogits/SparseSoftmaxCrossEntropyWithLogits:0' shape=(100,) dtype=float32>
 cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=result, labels=tf.cast(y_, tf.int64))
 
 '''
@@ -118,7 +128,7 @@ cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=result, la
        `tf.get_collection("losses")` 用于获取一个集合中存储的所有损失值。在 TensorFlow 中，可以通过将损失值添加到这个集合中来跟踪它们。
     通过将集合中的损失值相加，可以得到模型的总正则化损失。
 '''
-weights_with_l2_loss = tf.add_n(tf.get_collection("losses"))
+weights_with_l2_loss = tf.add_n(tf.get_collection("losses"))  # <tf.Tensor 'AddN:0' shape=() dtype=float32>
 '''
 将交叉熵损失和正则化损失相加，并取平均值，得到最终的损失值。
     1. `tf.reduce_mean(cross_entropy)`：这行代码计算交叉熵损失的平均值。`tf.reduce_mean` 函数用于计算张量的平均值。
@@ -126,7 +136,7 @@ weights_with_l2_loss = tf.add_n(tf.get_collection("losses"))
     通过将交叉熵损失和正则化损失相加，并取平均值，可以得到一个综合考虑了模型预测准确性和正则化项的损失值。这个损失值将在训练过程中用于优化模型的参数，以最小化损失并提高模型的性能。
     最终的损失值将用于评估模型的性能，并通过反向传播算法来更新模型的参数，以逐步提高模型的准确性和泛化能力。
 '''
-loss = tf.reduce_mean(cross_entropy) + weights_with_l2_loss
+loss = tf.reduce_mean(cross_entropy) + weights_with_l2_loss  # <tf.Tensor 'add_3:0' shape=() dtype=float32>
 '''
 使用 TensorFlow 中的 Adam 优化器来最小化损失函数 `loss`。
         1. `tf.train.AdamOptimizer(1e-3)`：创建一个 Adam 优化器对象。`1e-3` 是学习率（learning rate），用于控制每次参数更新的步长。
@@ -135,7 +145,7 @@ loss = tf.reduce_mean(cross_entropy) + weights_with_l2_loss
            当执行 `train_op` 时，优化器会根据当前的参数值和损失函数的梯度，计算出参数的更新量，并将其应用到模型中。通过不断地迭代训练，模型的参数会逐渐调整，以提高模型的性能。  
     学习率是一个重要的超参数，需要根据具体的问题和数据集进行调整。如果学习率过大，可能会导致模型不收敛或过拟合；如果学习率过小，可能会导致训练速度缓慢。此外，还可以根据需要进行其他的优化策略和超参数调整，以获得更好的训练效果。
 '''
-train_op = tf.train.AdamOptimizer(1e-3).minimize(loss)
+train_op = tf.train.AdamOptimizer(1e-3).minimize(loss)  # <tf.Operation 'Adam' type=NoOp>
 
 '''
 使用 TensorFlow 库中的 `tf.nn.in_top_k` 函数来判断模型的预测结果是否在真实标签的前 `k` 个预测结果中。
@@ -150,7 +160,7 @@ train_op = tf.train.AdamOptimizer(1e-3).minimize(loss)
 你可以根据需要调整 `k` 的值来评估模型在不同前 `k` 个预测结果中的性能。
 '''
 # 函数tf.nn.in_top_k()用来计算输出结果中top k的准确率，函数默认的k值是1，即top 1的准确率，也就是输出分类准确率最高时的数值
-top_k_op = tf.nn.in_top_k(result, y_, 1)
+top_k_op = tf.nn.in_top_k(result, y_, 1)  # <tf.Tensor 'in_top_k/InTopKV2:0' shape=(100,) dtype=bool>
 
 '''
 初始化所有的全局变量:
