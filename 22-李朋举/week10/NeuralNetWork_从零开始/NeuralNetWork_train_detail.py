@@ -52,33 +52,6 @@ def train(self, inputs_list, targets_list):
     final_outputs = self.activation_function(final_inputs)
 
     # 计算误差
-    '''    
-    隐藏层->输出层 的权值更新: W5-W8
-        整体损失Etotal对W5的偏导值:
-                ∂Etotal      ∂Etotal      ∂ao1       ∂zo1
-                -------  =  --------- * -------- * --------  =  -(t1−ao1) * [ao1∗(1−ao1)] ∗ aℎ1
-                  ∂W5          ∂ao1       ∂zo1       ∂w5
-        更新w5的全值：
-                                ∂Etotal
-                w5+ = w5 − η * ----------       
-                                  ∂W5 
-    输入层->隐藏层 的权值更新: W1-W4  
-        整体损失Etotal对W1的偏导值: 
-                ∂Etotal      ∂Etotal      ∂h1        ∂h1
-                -------  =  --------- * -------- * --------  
-                  ∂W1          ∂h1        ∂z1        ∂w1
-                             ∂EO1   ∂EO2    ∂h1     ∂h1
-                         = ( ---- + ----) * ---- * -----
-                             ∂h1    ∂h1     ∂Z1     ∂W1
-                             ∂EO1   ∂ao1   ∂zo1     ∂EO2   ∂ao2   ∂zo2     ∂h1    ∂h1
-                         = [(---- * ---- * ----) + (---- * ---- * ----)] * ---- * ----
-                             ∂ao1   ∂zo1   ∂zh1     ∂ao2   ∂zo2   ∂zh2     ∂Z1    ∂w1
-                         = [(ao1-t1)*(ao1*(1-ao1))*w5 + (ao2-t1)*(ao2*(1-ao12)*w7] * ah1*(1-ah1) * i1
-        更新w1的权值:                
-                                ∂Etotal
-                w1+ = w1 − η * ----------  
-                                  ∂W1      
-    '''
     output_errors = targets - final_outputs
     hidden_errors = numpy.dot(self.who.T, output_errors * final_outputs * (1 - final_outputs))
 
